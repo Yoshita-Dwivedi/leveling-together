@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Settings - Leveling Together</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <nav class="navbar"><div class="container flex justify-between items-center"><a href="/dashboard" style="color:white; text-decoration:none;">← Back to Dashboard</a></div></nav>
+    <div class="container flex gap-6" style="padding-top: 40px;">
+        
+        <!-- Left: Edit Profile -->
+        <div class="card" style="flex: 2;">
+            <h3 style="margin-top:0;">Edit Profile (/u/{{ user.username }})</h3>
+            
+            <!-- IMPORTANT: enctype is required for file uploads -->
+            <form method="POST" action="/settings" enctype="multipart/form-data" class="flex flex-col gap-4">
+                
+                <div class="flex items-center gap-4" style="margin-bottom: 10px;">
+                    <img src="{{ user.avatar_url }}" style="width: 60px; height: 60px; border-radius: 50%; border: 2px solid var(--border-color); object-fit: cover;">
+                    <div>
+                        <label for="avatar_file" style="display: block; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 5px;">Upload New Profile Picture</label>
+                        <input type="file" name="avatar_file" id="avatar_file" accept="image/*" style="color: var(--text-muted); font-size: 0.9rem;">
+                    </div>
+                </div>
+
+                <input type="text" name="display_name" value="{{ user.display_name }}" placeholder="Display Name">
+                <input type="text" name="bio" value="{{ user.bio }}" placeholder="Short Bio (visible to all)">
+                <input type="text" name="location" value="{{ user.location }}" placeholder="Location">
+                
+                <button type="submit" class="btn-green" style="align-self: flex-start; margin-top: 10px;">Save Profile</button>
+            </form>
+        </div>
+
+        <!-- Right: Follower Requests -->
+        <div class="card" style="flex: 1; height: fit-content;">
+            <h3 style="margin-top:0;">Pending Requests</h3>
+            <p class="text-xs text-muted">Approve users to let them see your stats and heatmap.</p>
+            {% for req, requester in request_data %}
+                <div class="flex justify-between items-center" style="padding: 10px 0; border-bottom: 1px solid var(--border-color);">
+                    <div class="flex items-center gap-2">
+                        <img src="{{ requester.avatar_url }}" style="width: 30px; height: 30px; border-radius: 50%; object-fit: cover;">
+                        <div>
+                            <div style="font-weight: bold; font-size: 0.9rem;">{{ requester.display_name }}</div>
+                            <div class="text-xs text-muted">@{{ requester.username }}</div>
+                        </div>
+                    </div>
+                    <div class="flex gap-2">
+                        <a href="/handle_request/{{ req.id }}/approve" class="btn-green" style="padding: 4px 8px; font-size: 0.8rem; text-decoration: none;">✓</a>
+                        <a href="/handle_request/{{ req.id }}/decline" class="btn-green" style="background: #EF4444; padding: 4px 8px; font-size: 0.8rem; text-decoration: none;">✕</a>
+                    </div>
+                </div>
+            {% else %}
+                <p class="text-sm text-muted">No pending requests.</p>
+            {% endfor %}
+        </div>
+    </div>
+</body>
+</html>

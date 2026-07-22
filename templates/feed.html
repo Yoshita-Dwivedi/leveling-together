@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Activity Feed - Leveling Together</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <!-- Top Nav -->
+    <nav class="navbar" style="border-bottom: 1px solid var(--border-color); padding-bottom: 20px;">
+        <div class="container flex justify-between items-center">
+            <div class="flex items-center">
+                <div class="logo-icon">⚡</div>
+                <div>
+                    <div style="font-weight: 700;">Leveling Together</div>
+                    <div class="text-muted text-xs">Activity Feed</div>
+                </div>
+            </div>
+            <div class="flex gap-4">
+                <a href="/dashboard" class="text-muted" style="text-decoration: none;">Dashboard</a>
+                <a href="/discover" class="text-muted" style="text-decoration: none;">Discover</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container" style="padding-top: 40px; max-width: 600px;">
+        <h2 style="margin-bottom: 5px;">Friends Activity</h2>
+        <p class="text-muted" style="margin-bottom: 30px;">See what your approved friends are up to.</p>
+
+        <div class="flex flex-col gap-4">
+            {% for activity, user in activities %}
+                <div class="card flex items-center gap-4" style="padding: 15px 20px;">
+                    <img src="{{ user.avatar_url }}" style="width: 45px; height: 45px; border-radius: 50%; object-fit: cover;">
+                    <div>
+                        <div style="font-size: 0.95rem;">
+                            <a href="/u/{{ user.username }}" style="color: var(--text-main); font-weight: bold; text-decoration: none;">{{ user.display_name }}</a> 
+                            <span style="color: var(--text-muted);">{{ activity.message }}</span>
+                        </div>
+                        <div class="text-xs text-muted" style="margin-top: 4px;">{{ activity.timestamp.strftime('%B %d, %Y - %I:%M %p') }}</div>
+                    </div>
+                </div>
+            {% else %}
+                <div class="card" style="text-align: center; padding: 40px;">
+                    <p class="text-muted">No activity yet. Log a day or find friends in Discover!</p>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+</body>
+</html>

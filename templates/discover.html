@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Discover - Leveling Together</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <nav class="navbar"><div class="container flex justify-between items-center"><a href="/dashboard" style="color:white; text-decoration:none;">← Back to Dashboard</a></div></nav>
+    <div class="container" style="padding-top: 40px; max-width: 800px;">
+        <h2>Discover Users</h2>
+        <p class="text-muted">Find friends to level up with.</p>
+        
+        <div style="display: flex; flex-direction: column; gap: 15px; margin-top: 20px;">
+            {% for u in users %}
+                <div class="card flex justify-between items-center" style="padding: 15px 20px;">
+                    <div class="flex items-center gap-4">
+                        <img src="{{ u.avatar_url }}" style="width: 50px; height: 50px; border-radius: 50%;">
+                        <div>
+                            <div style="font-weight: bold; font-size: 1.1rem;">{{ u.display_name }}</div>
+                            <div class="text-muted text-sm">@{{ u.username }} • Level {{ (u.points // 50) + 1 }}</div>
+                        </div>
+                    </div>
+                    <a href="/u/{{ u.username }}" class="btn-green" style="text-decoration: none;">View Profile</a>
+                </div>
+            {% else %}
+                <p>No other users on the platform yet.</p>
+            {% endfor %}
+        </div>
+    </div>
+</body>
+</html>

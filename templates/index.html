@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Leveling Together</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container flex justify-between items-center">
+            <div class="flex items-center">
+                <div class="logo-icon">⚡</div>
+                <span style="font-weight: 700; font-size: 1.1rem;">Leveling Together</span>
+            </div>
+            <a href="/auth" class="btn-green" style="text-decoration: none;">Sign in</a>
+            
+        </div>
+    </nav>
+
+    <div class="container hero">
+        <div class="hero-tag">🟢 Track how life is going — one day at a time</div>
+        <h1>Rate your day. <span style="color: var(--accent-green);">Level up<br>your life.</span></h1>
+        <p class="text-muted" style="max-width: 600px; margin: 0 auto 40px auto; font-size: 1.1rem;">
+            A private daily journal with a LeetCode-style heatmap. Rate each day 1–10, jot what happened, track your streak, and earn badges. Share your profile with friends — only people you approve can see it.
+        </p>
+        <a href="/auth" class="btn-green" style="padding: 14px 28px; font-size: 1.1rem; text-decoration: none;">Start leveling up →</a>
+
+        <div class="feature-grid">
+            <div class="card">
+                <h3 style="margin-top: 0;">📊 Year heatmap</h3>
+                <p class="text-muted text-sm margin-0">See every day of the past year colored by your rating.</p>
+            </div>
+            <div class="card">
+                <h3 style="margin-top: 0;">🔥 Streaks & levels</h3>
+                <p class="text-muted text-sm margin-0">Rack up points, level up, and unlock badges as you stay consistent.</p>
+            </div>
+            <div class="card">
+                <h3 style="margin-top: 0;">🔒 Private by default</h3>
+                <p class="text-muted text-sm margin-0">Only viewers you approve can see your profile and progress.</p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

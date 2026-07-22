@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>{{ target.display_name }} - Leveling Together</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <nav class="navbar"><div class="container flex justify-between items-center"><a href="/discover" style="color:white; text-decoration:none;">← Discover</a></div></nav>
+    <div class="container" style="padding-top: 40px; text-align: center; max-width: 600px;">
+        
+        <!-- Public Basic Info -->
+        <img src="{{ target.avatar_url }}" style="width: 100px; height: 100px; border-radius: 50%; margin-bottom: 15px;">
+        <h1 style="margin: 0 0 5px 0;">{{ target.display_name }}</h1>
+        <p class="text-muted">@{{ target.username }} • Level {{ level }}</p>
+        <p>{{ target.bio }}</p>
+        
+        <!-- Privacy Logic -->
+        {% if status == 'approved' %}
+            <div style="margin-top: 40px; text-align: left;">
+                <h3 style="border-bottom: 1px solid var(--border-color); padding-bottom: 10px;">{{ target.display_name }}'s Progress</h3>
+                <div class="stats-bar" style="margin-top: 20px;">
+                    <div class="stat-box"><h4>Streak</h4><p class="value">{{ current_streak }}🔥</p></div>
+                    <div class="stat-box"><h4>Logged</h4><p class="value">{{ days_logged }}</p></div>
+                </div>
+                <!-- Mini Heatmap -->
+                <div class="card" style="margin-top: 20px;">
+                    <h4>Heatmap</h4>
+                    <div class="heatmap-container" id="heatmapGrid"></div>
+                </div>
+            </div>
+            
+            <script>
+                // Generate Heatmap just like dashboard
+                const rawRatings = JSON.parse('{{ ratings | tojson | safe }}');
+                const rawDates = JSON.parse('{{ log_dates | tojson | safe }}');
+                const heatmapGrid = document.getElementById('heatmapGrid');
+                const colors = {1: '#EF4444', 3: '#F59E0B', 5: '#FDE047', 7: '#86EFAC', 10: '#16A34A'}; // Simplified mapping
+                let dateToRating = {}; for(let i=0; i<rawDates.length; i++) dateToRating[rawDates[i]] = rawRatings[i];
+                let today = new Date(); let startDate = new Date(); startDate.setDate(today.getDate() - 364);
+
+                for (let col = 0; col < 52; col++) {
+                    let colDiv = document.createElement('div'); colDiv.style.display = 'flex'; colDiv.style.flexDirection = 'column'; colDiv.style.gap = '4px';
+                    for (let row = 0; row < 7; row++) {
+                        let cellDate = new Date(startDate); cellDate.setDate(startDate.getDate() + (col * 7) + row);
+                        let dateStr = cellDate.toISOString().split('T')[0];
+                        let cell = document.createElement('div'); cell.className = 'heatmap-cell';
+                        if (dateToRating[dateStr]) cell.style.backgroundColor = colors[dateToRating[dateStr]] || '#4ADE80';
+                        colDiv.appendChild(cell);
+                    }
+                    heatmapGrid.appendChild(colDiv);
+                }
+            </script>
+            
+        {% elif status == 'pending' %}
+            <div class="card" style="margin-top: 40px;">
+                <h3>Request Pending ⏳</h3>
+                <p class="text-muted text-sm">Waiting for {{ target.display_name }} to approve your request.</p>
+            </div>
+        {% else %}
+            <div class="card" style="margin-top: 40px;">
+                <h3 style="margin-top: 0;">🔒 Private Account</h3>
+                <p class="text-muted text-sm" style="margin-bottom: 20px;">You must request access to view their stats, heatmap, and badges. (Journals remain private).</p>
+                <a href="/request_access/{{ target.username }}" class="btn-green" style="text-decoration: none;">Request Access</a>
+            </div>
+        {% endif %}
+    </div>
+</body>
+</html>

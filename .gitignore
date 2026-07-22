@@ -1,0 +1,5 @@
+venv/
+instance/
+*.pyc
+__pycache__/
+leveling_together.db

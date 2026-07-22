@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Dashboard - Leveling Together</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <!-- Top Nav -->
+    <nav class="navbar" style="border-bottom: none; padding-bottom: 0;">
+        <div class="container flex justify-between items-center">
+            
+            <!-- Left Side: Logo & Branding -->
+            <div class="flex items-center">
+                <div class="logo-icon">⚡</div>
+                <div>
+                    <div style="font-weight: 700;">Leveling Together</div>
+                    <div class="text-muted text-xs">Rate your day. Level up your life.</div>
+                </div>
+            </div>
+            
+            <!-- Right Side: Navigation & User Stats -->
+            <div class="flex items-center gap-6">
+                <!-- Navigation Links -->
+                <div class="flex gap-4">
+                    <a href="/discover" class="text-muted" style="text-decoration: none; font-size: 0.9rem; transition: color 0.2s;" onmouseover="this.style.color='#F3F4F6'" onmouseout="this.style.color='var(--text-muted)'">Discover</a>
+                    <a href="/settings" class="text-muted" style="text-decoration: none; font-size: 0.9rem; transition: color 0.2s;" onmouseover="this.style.color='#F3F4F6'" onmouseout="this.style.color='var(--text-muted)'">Settings</a>
+                    <a href="/logout" style="text-decoration: none; font-size: 0.9rem; color: #EF4444; transition: filter 0.2s;" onmouseover="this.style.filter='brightness(1.2)'" onmouseout="this.style.filter='none'">Logout</a>
+                </div>
+                
+                <!-- Stats -->
+                <div style="text-align: right; border-left: 1px solid var(--border-color); padding-left: 24px;">
+                    <div class="text-sm">Level <span style="color: var(--accent-green); font-weight: bold;">{{ level }}</span></div>
+                    <div class="text-muted text-xs">{{ user.points }} pts</div>
+                </div>
+            </div>
+            
+        </div>
+    </nav>
+
+    <div class="container" style="padding-top: 30px; padding-bottom: 50px;">
+        
+        <!-- Summary Stats Card -->
+        <div class="card" style="margin-bottom: 30px;">
+            <div class="stats-bar">
+                <div class="stat-box">
+                    <h4>Current Streak</h4>
+                    <p class="value">{{ current_streak }} <span style="font-size: 1.5rem;">🔥</span></p>
+                </div>
+                <div class="stat-box">
+                    <h4>Days Logged</h4>
+                    <p class="value">{{ days_logged }}</p>
+                </div>
+                <div class="stat-box">
+                    <h4>Avg Rating</h4>
+                    <p class="value">{% if avg_rating > 0 %}{{ avg_rating }}{% else %}—{% endif %}</p>
+                </div>
+                <div class="stat-box">
+                    <h4>Max Streak</h4>
+                    <p class="value">{{ max_streak }}</p>
+                </div>
+            </div>
+            
+            <!-- Level Progress -->
+            <div class="flex justify-between text-xs text-muted">
+                <span>Level {{ level }}</span>
+                <span>{{ points_progress }} / 50 to level {{ level + 1 }}</span>
+            </div>
+            <div class="progress-track">
+                <div class="progress-fill" style="width: {{ (points_progress / 50) * 100 }}%;"></div>
+            </div>
+        </div>
+
+        <!-- Main 2-Column Grid -->
+        <div class="flex gap-6">
+            
+            <!-- LEFT COLUMN: Logger & Tasks -->
+            <div style="flex: 0 0 320px; display: flex; flex-direction: column; gap: 20px;">
+                
+                <!-- Date Pills -->
+                <div class="date-pills">
+                    <div class="date-pill active">Today</div>
+                    <div class="date-pill">Yesterday</div>
+                    <div class="date-pill">2 days ago</div>
+                </div>
+
+                <!-- Logger Card -->
+                <div class="card">
+                    <div class="flex justify-between items-center margin-bottom-4">
+                        <h3 style="margin: 0;">Today</h3>
+                        <span class="text-muted text-xs">{{ today }}</span>
+                    </div>
+                    
+                    <form action="/save_day" method="POST" id="logForm">
+                        <p class="text-sm" style="margin-bottom: 10px;">How was your day? (1 = worst, 10 = best)</p>
+                        
+                        <!-- Hidden input to store selected rating -->
+                        <input type="hidden" name="rating" id="ratingInput" value="{% if log %}{{ log.rating }}{% endif %}">
+                        
+                        <!-- Visual Rating Grid (FIXED HEIGHT) -->
+                        <div class="rating-grid" style="grid-auto-rows: 1fr;">
+                            {% for i in range(1, 11) %}
+                                <button type="button" 
+                                        class="rating-btn r-{{ i }} {% if log and log.rating == i %}selected{% endif %}" 
+                                        onclick="selectRating('{{ i }}')" 
+                                        {% if i >= 9 %}style="aspect-ratio: auto;"{% endif %}>
+                                    {{ i }}
+                                </button>
+                            {% endfor %}
+                        </div>
+
+                        <p class="text-sm" style="margin-top: 25px; margin-bottom: 10px;">Journal — what happened today?</p>
+                        <textarea name="journal" rows="4" placeholder="A few lines about your day...">{% if log %}{{ log.journal }}{% endif %}</textarea>
+                        
+                        <button type="submit" class="btn-green" style="width: 100%; margin-top: 15px;">Save Log</button>
+                    </form>
+                </div>
+
+                <!-- Tasks Card -->
+                <div class="card">
+                    <h3 style="margin: 0 0 15px 0;">Tasks</h3>
+                    <form action="/add_task" method="POST" class="flex gap-2">
+                        <input type="text" name="description" placeholder="Add a task..." required>
+                        <button type="submit" class="btn-green">Add</button>
+                    </form>
+                    
+                    <!-- CLICKABLE TASKS FIX -->
+                    <div style="margin-top: 15px;">
+                        {% for task in tasks %}
+                            <div class="flex items-center gap-2" style="margin-bottom: 10px;">
+                                <a href="/toggle_task/{{ task.id }}" 
+                                   style="text-decoration: none; display: flex; align-items: center; justify-content: center; width: 16px; height: 16px; border: 1px solid {% if task.is_completed %}var(--accent-green){% else %}var(--text-muted){% endif %}; border-radius: 4px; background: {% if task.is_completed %}var(--accent-green){% else %}transparent{% endif %}; color: #000; font-size: 12px; font-weight: bold; transition: 0.2s;">
+                                    {% if task.is_completed %}✓{% endif %}
+                                </a>
+                                <span class="text-sm" style="{% if task.is_completed %}text-decoration: line-through; opacity: 0.5;{% endif %}">
+                                    {{ task.description }}
+                                </span>
+                            </div>
+                        {% else %}
+                            <p class="text-muted text-sm">No tasks yet.</p>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- RIGHT COLUMN: Charts, Heatmap, Badges -->
+            <div style="flex: 1; display: flex; flex-direction: column; gap: 20px;">
+                
+                <!-- Progress Line Chart -->
+                <div class="card">
+                    <h3 style="margin: 0 0 15px 0; font-size: 0.85rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px;">Progress</h3>
+                    <div style="height: 180px; width: 100%;">
+                        <canvas id="progressChart"></canvas>
+                    </div>
+                    <div style="text-align: right; margin-top: 10px;" class="text-xs text-muted">Last 30 days - daily rating</div>
+                </div>
+
+                <!-- Year Heatmap -->
+                <div class="card">
+                    <div class="flex justify-between items-center" style="margin-bottom: 15px;">
+                        <h3 style="margin: 0; font-size: 0.85rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px;">{{ days_logged }} Days Logged in the Past Year</h3>
+                        <span class="text-xs text-muted">Max streak: {{ max_streak }}</span>
+                    </div>
+                    
+                    <!-- Generated Heatmap Grid -->
+                    <div class="heatmap-container" id="heatmapGrid">
+                        <!-- JS fills this -->
+                    </div>
+                    
+                    <div class="flex items-center gap-2 text-xs text-muted" style="margin-top: 15px;">
+                        <span>Worse</span>
+                        <div style="width:10px; height:10px; background:var(--r1); border-radius:2px;"></div>
+                        <div style="width:10px; height:10px; background:var(--r3); border-radius:2px;"></div>
+                        <div style="width:10px; height:10px; background:var(--r5); border-radius:2px;"></div>
+                        <div style="width:10px; height:10px; background:var(--r7); border-radius:2px;"></div>
+                        <div style="width:10px; height:10px; background:var(--r10); border-radius:2px;"></div>
+                        <span>Better</span>
+                    </div>
+                </div>
+
+                <!-- Badges -->
+                <div class="card">
+                    <h3 style="margin: 0 0 15px 0; font-size: 0.85rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px;">Badges</h3>
+                    <div class="badges-grid">
+                        <div class="badge-card" style="{% if not badges_earned.first_step %}opacity: 0.3; filter: grayscale(100%);{% endif %}; transition: 0.3s;">
+                            <span class="badge-icon">🌱</span>
+                            <div style="font-weight: 600; font-size: 0.9rem;">First Step</div>
+                            <div class="text-xs text-muted">Log your first day</div>
+                        </div>
+                        <div class="badge-card" style="{% if not badges_earned.week_warrior %}opacity: 0.3; filter: grayscale(100%);{% endif %}; transition: 0.3s;">
+                            <span class="badge-icon">🔥</span>
+                            <div style="font-weight: 600; font-size: 0.9rem;">Week Warrior</div>
+                            <div class="text-xs text-muted">7-day streak</div>
+                        </div>
+                        <div class="badge-card" style="{% if not badges_earned.monthly_master %}opacity: 0.3; filter: grayscale(100%);{% endif %}; transition: 0.3s;">
+                            <span class="badge-icon">🏆</span>
+                            <div style="font-weight: 600; font-size: 0.9rem;">Monthly Master</div>
+                            <div class="text-xs text-muted">30-day streak</div>
+                        </div>
+                        <div class="badge-card" style="{% if not badges_earned.perfect_ten %}opacity: 0.3; filter: grayscale(100%);{% endif %}; transition: 0.3s;">
+                            <span class="badge-icon">⭐</span>
+                            <div style="font-weight: 600; font-size: 0.9rem;">Perfect Ten</div>
+                            <div class="text-xs text-muted">Rate a day 10/10</div>
+                        </div>
+                        <div class="badge-card" style="{% if not badges_earned.reflector %}opacity: 0.3; filter: grayscale(100%);{% endif %}; transition: 0.3s;">
+                            <span class="badge-icon">📖</span>
+                            <div style="font-weight: 600; font-size: 0.9rem;">Reflector</div>
+                            <div class="text-xs text-muted">Write 10 journal notes</div>
+                        </div>
+                        <div class="badge-card" style="{% if not badges_earned.century_club %}opacity: 0.3; filter: grayscale(100%);{% endif %}; transition: 0.3s;">
+                            <span class="badge-icon">💯</span>
+                            <div style="font-weight: 600; font-size: 0.9rem;">Century Club</div>
+                            <div class="text-xs text-muted">Earn 100 points</div>
+                        </div>
+                    </div>
+                </div>
+
+    <!-- Page Logic -->
+    <script>
+        // 1. Rating Selection Logic
+        function selectRating(val) {
+            document.getElementById('ratingInput').value = val;
+            document.querySelectorAll('.rating-btn').forEach(btn => btn.classList.remove('selected'));
+            event.target.classList.add('selected');
+        }
+
+        // 2. Data from Backend
+        const rawRatings = JSON.parse('{{ ratings | tojson | safe }}');
+        const rawDates = JSON.parse('{{ log_dates | tojson | safe }}');
+        
+        // 3. Line Chart Setup (Chart.js)
+        const ctx = document.getElementById('progressChart').getContext('2d');
+        // Get last 30 for chart
+        const chartRatings = rawRatings.slice(-30);
+        const chartLabels = rawDates.slice(-30);
+
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: chartLabels.length ? chartLabels : ['No Data'],
+                datasets: [{
+                    label: 'Rating',
+                    data: chartRatings.length ? chartRatings : [0],
+                    borderColor: '#22C55E', // Accent Green
+                    backgroundColor: 'rgba(34, 197, 94, 0.1)',
+                    borderWidth: 2,
+                    pointBackgroundColor: '#141B2D',
+                    pointBorderColor: '#22C55E',
+                    pointRadius: 4,
+                    fill: true,
+                    tension: 0.3
+                }]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: { min: 1, max: 10, grid: { color: '#1F2937' }, ticks: { color: '#9CA3AF' } },
+                    x: { grid: { display: false }, ticks: { display: false } } // Hide x-axis labels for clean look
+                }
+            }
+        });
+
+        // 4. Heatmap Generator (365 days / 52 weeks)
+        const heatmapGrid = document.getElementById('heatmapGrid');
+        // Colors corresponding to rating CSS variables
+        const colors = {
+            1: '#EF4444', 2: '#F97316', 3: '#F59E0B', 4: '#EAB308', 5: '#FDE047',
+            6: '#BEF264', 7: '#86EFAC', 8: '#4ADE80', 9: '#22C55E', 10: '#16A34A'
+        };
+
+        // Create a mapping of Date String to Rating
+        let dateToRating = {};
+        for(let i=0; i<rawDates.length; i++){
+            dateToRating[rawDates[i]] = rawRatings[i];
+        }
+
+        // Generate exactly 364 days (52 cols * 7 rows)
+        let today = new Date();
+        let startDate = new Date();
+        startDate.setDate(today.getDate() - 364);
+
+        for (let col = 0; col < 52; col++) {
+            let colDiv = document.createElement('div');
+            colDiv.style.display = 'flex';
+            colDiv.style.flexDirection = 'column';
+            colDiv.style.gap = '4px';
+            
+            for (let row = 0; row < 7; row++) {
+                let cellDate = new Date(startDate);
+                cellDate.setDate(startDate.getDate() + (col * 7) + row);
+                let dateStr = cellDate.toISOString().split('T')[0];
+
+                let cell = document.createElement('div');
+                cell.className = 'heatmap-cell';
+                
+                // If log exists for this day, color it
+                if (dateToRating[dateStr]) {
+                    cell.style.backgroundColor = colors[dateToRating[dateStr]];
+                }
+                
+                cell.title = `${dateStr}: ${dateToRating[dateStr] ? dateToRating[dateStr] : 'No data'}`;
+                colDiv.appendChild(cell);
+            }
+            heatmapGrid.appendChild(colDiv);
+        }
+    </script>
+</body>
+</html>
