@@ -104,3 +104,13 @@ input[type="text"]:focus, textarea:focus { border-color: var(--accent-green); }
 
 .heatmap-container { display: grid; grid-template-columns: repeat(52, 1fr); gap: 4px; overflow-x: auto; padding-bottom: 10px;}
 .heatmap-cell { width: 12px; height: 12px; border-radius: 3px; background: #1F2937; }
+
+.badge-card.disabled {
+    opacity: 0.3;
+    filter: grayscale(100%);
+    transition: 0.3s;
+}
+
+.badge-card {
+    transition: 0.3s;
+}
